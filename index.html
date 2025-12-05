@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בוט טלגרם - חישוב ריבוע</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 18px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .emoji {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .calculation {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 בוט חישוב ריבוע</h1>
+        
+        <div class="input-group">
+            <label for="numberInput">הכנס מספר:</label>
+            <input type="text" id="numberInput" placeholder="לדוגמה: 5" autofocus>
+        </div>
+
+        <button onclick="calculateSquare()">חשב ריבוע</button>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        // אתחול Telegram Web App
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.MainButton.hide();
+        }
+
+        const input = document.getElementById('numberInput');
+        const resultDiv = document.getElementById('result');
+
+        // אפשרות ללחוץ Enter
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculateSquare();
+            }
+        });
+
+        function calculateSquare() {
+            const value = input.value.trim();
+            
+            // בדיקה אם הערך ריק
+            if (value === '') {
+                showError('⚠️ אנא הכנס מספר');
+                return;
+            }
+
+            // בדיקה אם זה מספר תקין
+            const number = parseFloat(value);
+            
+            if (isNaN(number)) {
+                showError('❌ זה לא מספר תקין!');
+                return;
+            }
+
+            // חישוב הריבוע
+            const square = number * number;
+            showSuccess(number, square);
+
+            // שליחה לטלגרם אם זמין
+            if (tg) {
+                tg.sendData(JSON.stringify({
+                    number: number,
+                    square: square
+                }));
+            }
+        }
+
+        function showSuccess(number, square) {
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = `
+                <div class="emoji">✅</div>
+                <div>הריבוע של ${number} הוא:</div>
+                <div style="font-size: 32px; margin: 15px 0;">${square}</div>
+                <div class="calculation">${number} × ${number} = ${square}</div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        function showError(message) {
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `
+                <div class="emoji">⚠️</div>
+                <div>${message}</div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        // מחיקת ההודעה כשמתחילים להקליד
+        input.addEventListener('input', function() {
+            if (resultDiv.style.display === 'block') {
+                resultDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
